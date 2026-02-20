@@ -1,0 +1,7 @@
+---
+title: "winter_datathon_26"
+author: "Fiona Wangsawidjaja"
+date: "2026-02-20"
+output: pdf_document
+---
+
