@@ -1,7 +1,13 @@
 ---
 title: "winter_datathon_26"
-author: "Fiona Wangsawidjaja"
+author: "Fiona, Nicolle, Kevin"
 date: "2026-02-20"
 output: pdf_document
 ---
+
+# cleaning dataset
+
+```{r}
+
+```
 
