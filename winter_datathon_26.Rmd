@@ -12,7 +12,8 @@ output: pdf_document
 ```{r}
 library(tidyverse)
 x <- c(1)
-movies <- read.csv("moviedata.csv")
+movies <- read.csv("movie_data.csv")
+attach(movies)
 movies_clean <- movies
 movies %>% map(~sum(is.na(.)))
 
@@ -56,6 +57,18 @@ movies$Count.of.IMDb.Ratings %>% map_dbl(~km(.))
 ```
 
 ```{r relsease date}
+library(dplyr)
+library(tidyr)
+
+movies_data |> 
+  separate(
+    Release.Date,
+    into = c("date", "country"),
+    sep = "\\(", 
+    fill= "right"
+    ) |>
+      mutate(country = sub("\\)$", "", country))
+
 
 
 ```
