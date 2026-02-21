@@ -29,7 +29,6 @@ movies_clean$Run.Time <- movies_data$Run.Time %>% str_extract_all("\\d+") %>% ma
 ```
 
 ```{r runtime cleanup}
-#converted everything to seconds
 movies_clean$Run.Time <-
   movies_clean$Run.Time %>%
   str_extract_all("\\d+") %>%
@@ -150,8 +149,6 @@ class(movies_clean[["Domestic.Gross"]][1]) #so we know its a character
 movies_clean[["Domestic.Gross"]] <- as.numeric(gsub("[\\$,]", "", movies_clean[["Domestic.Gross"]]))
 
 class(movies_clean[["Domestic.Gross"]][1])
-
-#apply for other 2 gross figs
 ```
 
 ```{r domestic weekend gross}
@@ -224,6 +221,12 @@ runtime_vs_rating_rt <- lm(Rotten.Tomatoes.Rating ~ Run.Time)
 summary(runtime_vs_rating_rt)
 plot(runtime_vs_rating_rt)
 
+#IMdb ratings
+
+imdb_ratings_proportion <- IMDb.Rating * Count.of.IMDb.Ratings
+runtime_vs_rating_imdb <- lm(imdb_ratings_proportion ~ Run.Time)
+summary(runtime_vs_rating_imdb)
+plot(runtime_vs_rating_imdb)
 
 ```
 
