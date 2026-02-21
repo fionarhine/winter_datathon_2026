@@ -54,3 +54,9 @@ km(movies$Count.of.IMDb.Ratings)
 
 movies$Count.of.IMDb.Ratings %>% map_dbl(~km(.))
 ```
+
+```{r relsease date}
+
+
+```
+
