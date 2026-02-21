@@ -63,7 +63,7 @@ movies_wide_genres <- movies_data %>% select(Title, Genre) %>%
     values_fn = any
   )
 
-movies_clean <- movies_clean %>% inner_join(movies_wide, by = "Title")
+movies_clean <- movies_clean %>% inner_join(movies_wide_genres, by = "Title")
 ```
 
 ```{r release date}
