@@ -13,10 +13,10 @@ output: pdf_document
 library(tidyverse)
 
 x <- c(1)
-movies <- read.csv("movie_data.csv")
-attach(movies)
-movies_clean <- movies
-movies %>% map(~sum(is.na(.)))
+movies_data <- read.csv("movie_data.csv")
+attach(movies_data)
+movies_clean <- movies_data
+movies_clean %>% map(~sum(is.na(.)))
 
 movies_data <- read.csv("movie_data.csv")
 head(movies_data)
@@ -25,7 +25,7 @@ movies_data <- drop_na(movies_data)
 movies_clean <- movies_data
 movies_clean %>% map(~sum(is.na(.)))
 
-movies_clean$Run.Time <- movies$Run.Time %>% str_extract_all("\\d+") %>% map(~as.numeric(.)) %>%
+movies_clean$Run.Time <- movies_data$Run.Time %>% str_extract_all("\\d+") %>% map(~as.numeric(.)) %>%
   map(~.[1] * 60 + .[2]) %>% unlist()
 ```
 
@@ -53,7 +53,7 @@ movies_clean$Count.of.IMDb.Ratings <- movies_data$Count.of.IMDb.Ratings %>%
 ```
 
 ```{r genre cleanup}
-movies_wide <- movies_data %>% select(Title, Genre) %>% 
+movies_wide_genres <- movies_data %>% select(Title, Genre) %>% 
   separate_rows(Genre, sep = ",") %>%
   mutate(present = TRUE) %>%
   pivot_wider(
@@ -140,21 +140,21 @@ movies_clean <- movies_data %>%
 ```
 
 ```{r domestic gross}
-class(movies[["Domestic.Gross"]][1]) #so we know its a character
+class(movies_clean[["Domestic.Gross"]][1]) #so we know its a character
 
-movies[["Domestic.Gross"]] <- as.numeric(gsub("[\\$,]", "", movies[["Domestic.Gross"]]))
+movies_clean[["Domestic.Gross"]] <- as.numeric(gsub("[\\$,]", "", movies_clean[["Domestic.Gross"]]))
 
-class(movies[["Domestic.Gross"]][1])
+class(movies_clean[["Domestic.Gross"]][1])
 
 #apply for other 2 gross figs
 ```
 
 ```{r domestic weekend gross}
-movies[["Domestic.Weekend.Gross"]] <- as.numeric(gsub("[\\$,]", "", movies[["Domestic.Weekend.Gross"]]))
+movies_clean[["Domestic.Weekend.Gross"]] <- as.numeric(gsub("[\\$,]", "", movies_clean[["Domestic.Weekend.Gross"]]))
 ```
 
 ```{r worldwide gross}
-movies[["Worldwide.Gross"]] <- as.numeric(gsub("[\\$,]", "", movies[["Worldwide.Gross"]]))
+movies_clean[["Worldwide.Gross"]] <- as.numeric(gsub("[\\$,]", "", movies_clean[["Worldwide.Gross"]]))
 ```
 
 
