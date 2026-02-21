@@ -161,7 +161,7 @@ movies_clean[["Worldwide.Gross"]] <- as.numeric(gsub("[\\$,]", "", movies_clean[
 library(dplyr)
 library(readr)
 
-movies_clean <- movies_data %>%
+movies_clean <- movies_clean %>%
   mutate(
     domestic_gross_2026 =
       parse_number(Domestic.Gross) *
@@ -176,5 +176,3 @@ movies_clean <- movies_data %>%
       (1 + annual_inflation)^(base_year - as.integer(Year))
   )
 ```
-
-
