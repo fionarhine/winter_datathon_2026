@@ -52,7 +52,6 @@ movies_clean$Count.of.IMDb.Ratings <- movies_data$Count.of.IMDb.Ratings %>%
   map_dbl(~km(.)) 
 ```
 
-
 ```{r genre cleanup}
 movies_wide <- movies_data %>% select(Title, Genre) %>% 
   separate_rows(Genre, sep = ",") %>%
@@ -83,8 +82,28 @@ movies_data |>
                 month = str_extract(date, "^[A-Za-z]+")
               ) |>
                 relocate(month, .before = date)
+```
 
-
+```{r budget}
 
 ```
+
+```{r domestic gross}
+class(movies[["Domestic.Gross"]][1]) #so we know its a character
+
+movies["Domestic.Gross"] <- as.numeric(movies[["Domesic.Gross"]])
+
+class(movies[["Domestic.Gross"]][1])
+
+```
+```{r domestic weekend gross}
+movies[["Domestic.Weekend.Gross"]] <- as.numeric(str_sub("[\\$,]", "", movies[["Domestic.Weekend.Gross"]]))
+
+class(movies[["Domestic.Weekend.Gross"]][1])
+```
+
+```{r}
+
+```
+
 
