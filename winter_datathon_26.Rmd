@@ -213,5 +213,17 @@ best_lambda
 
 coef(lasso_cv, s = "lambda.min")
 
+#i give up here
+```
+```{r}
+#runtime effect on ratings 
+
+#rotten tomato ratings
+attach(movies_clean)
+runtime_vs_rating_rt <- lm(Rotten.Tomatoes.Rating ~ Run.Time)
+summary(runtime_vs_rating_rt)
+plot(runtime_vs_rating_rt)
+
+
 ```
 
