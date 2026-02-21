@@ -78,8 +78,11 @@ movies_data |>
     sep = "\\(", 
     fill= "right"
     ) |>
-      mutate(country = sub("\\)$", "", country))
-
+        mutate(date = str_trim(date),
+                country = str_trim(sub("\\)$", "", country)),
+                month = str_extract(date, "^[A-Za-z]+")
+              ) |>
+                relocate(month, .before = date)
 
 
 
