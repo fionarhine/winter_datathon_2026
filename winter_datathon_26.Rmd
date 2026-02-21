@@ -164,15 +164,15 @@ library(readr)
 movies_clean <- movies_clean %>%
   mutate(
     domestic_gross_2026 =
-      parse_number(Domestic.Gross) *
+      Domestic.Gross *
       (1 + annual_inflation)^(base_year - as.integer(Year)),
 
     domestic_weekend_gross_2026 =
-      parse_number(Domestic.Weekend.Gross) *
+      Domestic.Weekend.Gross *
       (1 + annual_inflation)^(base_year - as.integer(Year)),
 
     worldwide_gross_2026 =
-      parse_number(Worldwide.Gross) *
+      Worldwide.Gross *
       (1 + annual_inflation)^(base_year - as.integer(Year))
   )
 ```
