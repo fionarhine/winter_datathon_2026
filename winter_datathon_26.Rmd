@@ -89,11 +89,6 @@ movies_data |>
 ```
 
 ```{r budget}
-
-```
-
-<<<<<<< HEAD
-```{r budget}
 library(tidyverse)
 library(readr)
 library(stringr)
@@ -148,7 +143,6 @@ movies_clean <- movies_data %>%
   )
 ```
 
-=======
 ```{r domestic gross}
 class(movies[["Domestic.Gross"]][1]) #so we know its a character
 
@@ -168,4 +162,3 @@ class(movies[["Domestic.Weekend.Gross"]][1])
 ```
 
 
->>>>>>> 49202af4bdc29413dc58dba63dea833cfe13e7eb
