@@ -17,6 +17,9 @@ head(movies_data)
 movies_data <- drop_na(movies_data)
 movies_clean <- movies_data
 movies_clean %>% map(~sum(is.na(.)))
+
+movies_clean$Run.Time <- movies$Run.Time %>% str_extract_all("\\d+") %>% map(~as.numeric(.)) %>%
+  map(~.[1] * 60 + .[2]) %>% unlist()
 ```
 
 ```{r runtime cleanup}
@@ -42,7 +45,24 @@ movies_clean$Count.of.IMDb.Ratings <- movies_data$Count.of.IMDb.Ratings %>%
   map_dbl(~km(.)) 
 ```
 
+
 ```{r genre cleanup}
+movies_wide <- movies_data %>% select(Title, Genre) %>% 
+  separate_rows(Genre, sep = ",") %>%
+  mutate(present = TRUE) %>%
+  pivot_wider(
+    names_from = Genre,
+    values_from = present,
+    values_fill = FALSE,
+    values_fn = any
+  )
+
+movies_clean <- movies_clean %>% inner_join(movies_wide, by = "Title")
+```
+
+```{r relsease date}
+
+
 
 ```
 
