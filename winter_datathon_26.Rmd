@@ -42,7 +42,7 @@ movies_clean$Count.of.IMDb.Ratings <- movies_data$Count.of.IMDb.Ratings %>%
   map_dbl(~km(.)) 
 ```
 
-```{r}
+```{r genre cleanup}
 
 ```
 
