@@ -8,6 +8,47 @@ output: pdf_document
 # cleaning dataset
 
 ```{r}
+library(tidyverse)
+x <- c(1)
+movies <- read.csv("moviedata.csv")
+movies_clean <- movies
+movies %>% map(~sum(is.na(.)))
 
+movies_clean$Run.Time <- movies$Run.Time %>% str_extract_all("\\d+") %>% map(~as.numeric(.)) %>%
+  map(~.[1] * 60 + .[2]) %>% unlist()
+
+km <- function(string){
+  if(is.numeric(string)){
+    
+  }
+  if(str_detect(string, "K")){
+    num <- as.numeric(str_extract_all(string, "\\d+")) * 1000
+  }
+  if(str_detect(string, "M")){
+    num <- as.numeric(str_extract_all(string, "\\d+")) * 1000000
+  }
+  num
+}
+km("298K")
 ```
+
+```{r runtime cleanup}
+movies_clean$Run.Time <- movies$Run.Time %>% str_extract_all("\\d+") %>% map(~as.numeric(.)) %>%
+  map(~.[1] * 60 + .[2]) %>% unlist()
+```
+
+```{r imdb review cleanup}
+km <- function(string){
+  if(str_detect(string, "K")){
+    num <- as.numeric(str_sub(string, 1, -2)) * 1000
+  }
+  if(str_detect(string, "M")){
+    num <- as.numeric(str_sub(string, 1, -2)) * 1000000
+  }
+  num
+}
+
+km(movies$Count.of.IMDb.Ratings)
+
+movies$Count.of.IMDb.Ratings %>% map_dbl(~km(.))
 
