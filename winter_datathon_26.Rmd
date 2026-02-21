@@ -66,13 +66,9 @@ movies_wide <- movies_data %>% select(Title, Genre) %>%
 movies_clean <- movies_clean %>% inner_join(movies_wide, by = "Title")
 ```
 
-<<<<<<< HEAD
 ```{r release date}
-=======
-```{r relsease date}
 library(dplyr)
 library(tidyr)
->>>>>>> 49202af4bdc29413dc58dba63dea833cfe13e7eb
 
 movies_data |> 
   separate(
@@ -152,6 +148,7 @@ class(movies[["Domestic.Gross"]][1])
 
 #apply for other 2 gross figs
 ```
+
 ```{r domestic weekend gross}
 movies[["Domestic.Weekend.Gross"]] <- as.numeric(gsub("[\\$,]", "", movies[["Domestic.Weekend.Gross"]]))
 ```
