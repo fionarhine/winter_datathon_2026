@@ -11,6 +11,13 @@ output: pdf_document
 
 ```{r}
 library(tidyverse)
+
+x <- c(1)
+movies <- read.csv("movie_data.csv")
+attach(movies)
+movies_clean <- movies
+movies %>% map(~sum(is.na(.)))
+
 movies_data <- read.csv("movie_data.csv")
 head(movies_data)
 
@@ -45,7 +52,6 @@ movies_clean$Count.of.IMDb.Ratings <- movies_data$Count.of.IMDb.Ratings %>%
   map_dbl(~km(.)) 
 ```
 
-
 ```{r genre cleanup}
 movies_wide <- movies_data %>% select(Title, Genre) %>% 
   separate_rows(Genre, sep = ",") %>%
@@ -60,12 +66,33 @@ movies_wide <- movies_data %>% select(Title, Genre) %>%
 movies_clean <- movies_clean %>% inner_join(movies_wide, by = "Title")
 ```
 
+<<<<<<< HEAD
 ```{r release date}
+=======
+```{r relsease date}
+library(dplyr)
+library(tidyr)
+>>>>>>> 49202af4bdc29413dc58dba63dea833cfe13e7eb
 
+movies_data |> 
+  separate(
+    Release.Date,
+    into = c("date", "country"),
+    sep = "\\(", 
+    fill= "right"
+    ) |>
+        mutate(date = str_trim(date),
+                country = str_trim(sub("\\)$", "", country)),
+                month = str_extract(date, "^[A-Za-z]+")
+              ) |>
+                relocate(month, .before = date)
+```
 
+```{r budget}
 
 ```
 
+<<<<<<< HEAD
 ```{r budget}
 library(tidyverse)
 library(readr)
@@ -121,3 +148,24 @@ movies_clean <- movies_data %>%
   )
 ```
 
+=======
+```{r domestic gross}
+class(movies[["Domestic.Gross"]][1]) #so we know its a character
+
+movies["Domestic.Gross"] <- as.numeric(movies[["Domesic.Gross"]])
+
+class(movies[["Domestic.Gross"]][1])
+
+```
+```{r domestic weekend gross}
+movies[["Domestic.Weekend.Gross"]] <- as.numeric(str_sub("[\\$,]", "", movies[["Domestic.Weekend.Gross"]]))
+
+class(movies[["Domestic.Weekend.Gross"]][1])
+```
+
+```{r}
+
+```
+
+
+>>>>>>> 49202af4bdc29413dc58dba63dea833cfe13e7eb
