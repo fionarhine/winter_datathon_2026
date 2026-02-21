@@ -4,10 +4,18 @@ author: "Fiona, Nicolle, Kevin"
 date: "2026-02-20"
 output: pdf_document
 ---
+#list of cleaned columns
+#IMDB rating, Run Time, 
 
 # cleaning dataset
 
 ```{r}
+movies_data <- read.csv("movie_data.csv")
+head(movies_data)
 
+for (col in names(movies_data)){
+  movies_data |>
+    filter(is.na(movies_data[[col]]))
+}
 ```
 
