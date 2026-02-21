@@ -60,9 +60,64 @@ movies_wide <- movies_data %>% select(Title, Genre) %>%
 movies_clean <- movies_clean %>% inner_join(movies_wide, by = "Title")
 ```
 
-```{r relsease date}
+```{r release date}
 
 
 
+```
+
+```{r budget}
+library(tidyverse)
+library(readr)
+library(stringr)
+
+#assume 3% average annual inflation
+base_year <- 2026
+annual_inflation <- 0.03 
+
+#identify what currencies are there
+movies_data %>%
+  mutate(budget_currency = str_trim(str_extract(Budget, "^[^0-9]+"))) %>%
+  count(budget_currency, sort = TRUE)
+
+#exchange rates as of 20 Feb 2026
+exchange_rates <- tibble(
+  budget_currency = c("$", "£", "EUR", "CA$", "A$", "¥", "RUR", "₹", "CN¥", "R$", "THB"),
+  rate_to_usd = c(
+    1.00,   # USD
+    1.35,   # GBP
+    1.18,   # EUR
+    0.73,   # CAD
+    0.71,   # AUD
+    0.0065, # JPY
+    0.013,  # RUR (old russian ruble)
+    0.011,  # INR
+    0.14,   # CNY
+    0.19,   # BRL
+    0.032   # THB
+  )
+)
+
+#convert
+movies_clean <- movies_data %>%
+  mutate(
+    budget_usd_2026 = {
+      currency <- str_trim(str_extract(Budget, "^[^0-9]+"))
+      currency[is.na(currency)] <- "$"
+
+      # standardize: old currencies to euro
+      currency[currency == "€"] <- "EUR"
+      currency[currency %in% c("DEM", "FRF")] <- "EUR"
+
+      value <- parse_number(Budget) 
+
+      rate <- exchange_rates$rate_to_usd[match(currency, exchange_rates$budget_currency)]
+      rate[is.na(rate)] <- 1  # if no currency, treat as USD
+
+      years <- base_year - as.integer(Year) 
+
+      (value * rate) * (1 + annual_inflation)^years #inflate to 2026 USD (future value formula)
+    }
+  )
 ```
 
