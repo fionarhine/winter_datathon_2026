@@ -11,45 +11,24 @@ output: pdf_document
 
 ```{r}
 library(tidyverse)
-x <- c(1)
-movies <- read.csv("moviedata.csv")
-movies_clean <- movies
-movies %>% map(~sum(is.na(.)))
-
-movies_clean$Run.Time <- movies$Run.Time %>% str_extract_all("\\d+") %>% map(~as.numeric(.)) %>%
-  map(~.[1] * 60 + .[2]) %>% unlist()
-
-km <- function(string){
-  if(is.numeric(string)){
-    
-  }
-  if(str_detect(string, "K")){
-    num <- as.numeric(str_extract_all(string, "\\d+")) * 1000
-  }
-  if(str_detect(string, "M")){
-    num <- as.numeric(str_extract_all(string, "\\d+")) * 1000000
-  }
-  num
-}
-km("298K")
-
 movies_data <- read.csv("movie_data.csv")
 head(movies_data)
 
-for (col in names(movies_data)){
-  movies_data |>
-    filter(!is.na(movies_data[[col]]))
-}
-
+movies_data <- drop_na(movies_data)
+movies_clean <- movies_data
+movies_clean %>% map(~sum(is.na(.)))
 ```
 
 ```{r runtime cleanup}
-movies_clean$Run.Time <- movies$Run.Time %>% str_extract_all("\\d+") %>% map(~as.numeric(.)) %>%
+movies_clean$Run.Time <- movies_data$Run.Time %>% str_extract_all("\\d+") %>% map(~as.numeric(.)) %>%
   map(~.[1] * 60 + .[2]) %>% unlist()
 ```
 
 ```{r imdb review cleanup}
 km <- function(string){
+  if(!is.na(as.numeric(string))){
+    num <- as.numeric(string)
+  }
   if(str_detect(string, "K")){
     num <- as.numeric(str_sub(string, 1, -2)) * 1000
   }
@@ -59,7 +38,11 @@ km <- function(string){
   num
 }
 
-km(movies$Count.of.IMDb.Ratings)
-
-movies$Count.of.IMDb.Ratings %>% map_dbl(~km(.))
+movies_clean$Count.of.IMDb.Ratings <- movies_data$Count.of.IMDb.Ratings %>% 
+  map_dbl(~km(.)) 
 ```
+
+```{r}
+
+```
+
