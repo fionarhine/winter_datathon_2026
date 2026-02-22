@@ -399,6 +399,36 @@ low_movies <- movies_clean %>%
 
 summary(low_movies$Run.Time)
 ```
+```{r}
+library(ggplot2)
+library(dplyr)
+
+ratings_long <- movies_clean %>%
+  dplyr::select(
+    Release.Month,
+    Rotten.Tomatoes.Rating,
+    Metascore.Rating
+  ) %>%
+  pivot_longer(
+    -Run.Time,
+    names_to = "Rating_Type",
+    values_to = "Rating"
+  )
+
+ggplot(ratings_long,
+       aes(x = Run.Time,
+           y = Rating,
+           color = Rating_Type)) +
+  geom_point(alpha = 0.6) +
+  ylim(0, 100)
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(
+    x = "Runtime (minutes)",
+    y = "Rating",
+    title = "Relationship Between Runtime and Movie Ratings"
+  ) +
+  theme_minimal()
+```
 
 
 ```{r}
