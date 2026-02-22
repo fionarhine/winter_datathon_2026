@@ -14,6 +14,7 @@ library(tidyverse)
 
 x <- c(1)
 movies_data <- read.csv("movie_data.csv")
+attach(movies_data)
 movies_clean <- movies_data
 movies_clean %>% map(~sum(is.na(.)))
 
@@ -29,12 +30,8 @@ movies_clean$Run.Time <- movies_data$Run.Time %>% str_extract_all("\\d+") %>% ma
 ```
 
 ```{r runtime cleanup}
-movies_clean$Run.Time <-
-  movies_clean$Run.Time %>%
-  str_extract_all("\\d+") %>%
-  map(as.numeric) %>%
-  map(~ .[1] * 60 + dplyr::coalesce(.[2], 0)) %>%
-  unlist()
+movies_clean$Run.Time <- movies_data$Run.Time %>% str_extract_all("\\d+") %>% map(~as.numeric(.)) %>%
+  map(~.[1] * 60 + .[2]) %>% unlist()
 ```
 
 ```{r imdb review cleanup}
@@ -51,9 +48,8 @@ km <- function(string){
   num
 }
 
-movies_clean$Count.of.IMDb.Ratings <-
-  movies_clean$Count.of.IMDb.Ratings %>%
-  map_dbl(km)
+movies_clean$Count.of.IMDb.Ratings <- movies_data$Count.of.IMDb.Ratings %>% 
+  map_dbl(~km(.)) 
 ```
 
 ```{r genre cleanup}
@@ -74,18 +70,18 @@ movies_clean <- movies_clean %>% inner_join(movies_wide_genres, by = "Title")
 library(dplyr)
 library(tidyr)
 
-movies_clean <- movies_data |> 
-                  separate(
-                    Release.Date,
-                    into = c("Release.Date", "Country"),
-                    sep = "\\(", 
-                    fill= "right"
-                    ) |>
-                        mutate(date = str_trim(Release.Date),
-                                Country = str_trim(sub("\\)$", "", Country)),
-                                Release.Month= str_extract(date, "^[A-Za-z]+")
-                              ) |>
-                                relocate(Release.Month, .before = Release.Date)
+movies_data |> 
+  separate(
+    Release.Date,
+    into = c("date", "country"),
+    sep = "\\(", 
+    fill= "right"
+    ) |>
+        mutate(date = str_trim(date),
+                country = str_trim(sub("\\)$", "", country)),
+                month = str_extract(date, "^[A-Za-z]+")
+              ) |>
+                relocate(month, .before = date)
 ```
 
 ```{r budget}
@@ -149,6 +145,8 @@ class(movies_clean[["Domestic.Gross"]][1]) #so we know its a character
 movies_clean[["Domestic.Gross"]] <- as.numeric(gsub("[\\$,]", "", movies_clean[["Domestic.Gross"]]))
 
 class(movies_clean[["Domestic.Gross"]][1])
+
+#apply for other 2 gross figs
 ```
 
 ```{r domestic weekend gross}
@@ -179,58 +177,66 @@ movies_clean <- movies_clean %>%
   )
 ```
 
-```{r ratings cleanup}
-movies_clean[["Rotten.Tomatoes.Rating"]] <- as.numeric(gsub("%", "", movies_clean[["Rotten.Tomatoes.Rating"]]))
+```{r}
+#clean plot
+movies_clean <- movies_clean %>%
+  mutate(
+    Plot = str_replace_all(Plot, "&apos;", "'"),
+    Plot = str_replace_all(Plot, "&quot;", "\""),
+    Plot = str_replace_all(Plot, "&amp;", "&")
+  )
 ```
 
 ```{r}
-#runtime, genre, certificate, budget, release month
-# do genre and certificant different 
+#install.packages("tidytext")
+#install.packages("textdata")
+library(tidytext)
+library(textdata)
+library(dplyr)
+library(stringr)
 
-#perform lasso to select relevant variables
-library(tidyverse)
-library(glmnet)
+plot_words <- movies_clean %>%
+  select(Title, Plot) %>%
+  mutate(Plot = tolower(Plot)) %>%
+  unnest_tokens(word, Plot)
 
-movies_clean <- drop_na(movies_clean)
+afinn <- get_sentiments("afinn")
 
-x <- model.matrix(
-  Rotten.Tomatoes.Rating ~ Run.Time + Budget + Genre + Directors + Writers + Certificate,
-  data = movies_clean
-)[, -1] 
+plot_sentiment <- plot_words %>%
+  inner_join(afinn, by = "word") %>%
+  group_by(Title) %>%
+  summarise(
+    plot_sentiment = mean(value),
+    sentiment_sum = sum(value),
+    word_count = n()
+  )
 
-y <- movies_clean$Rotten.Tomatoes.Rating
+movies_clean <- movies_clean %>%
+  left_join(plot_sentiment, by = "Title")
 
-set.seed(123)
-lasso_cv <- cv.glmnet(x, y, alpha = 1)  
 
-plot(lasso_cv)
-
-best_lambda <- lasso_cv$lambda.min
-best_lambda
-
-coef(lasso_cv, s = "lambda.min")
-
-#i give up here
 ```
+
 ```{r}
-#runtime effect on ratings 
+library(tidytext)
+library(dplyr)
 
-#rotten tomato ratings
-attach(movies_clean)
-runtime_vs_rating_rt <- lm(Rotten.Tomatoes.Rating ~ Run.Time)
-summary(runtime_vs_rating_rt)
-plot(runtime_vs_rating_rt)
+plot_words <- movies_clean %>%
+  unnest_tokens(word, Plot)
 
-#IMdb ratings
-imdb_ratings_proportion <- IMDb.Rating * Count.of.IMDb.Ratings
-runtime_vs_rating_imdb <- lm(imdb_ratings_proportion ~ Run.Time)
-summary(runtime_vs_rating_imdb)
-plot(runtime_vs_rating_imdb)
+plot_words %>%
+  count(word, sort = TRUE) %>%
+  filter(!word %in% stop_words$word) %>%
+  slice_max(n, n = 100)
+```
 
-#metascore ratings
-runtime_vs_rating_meta <- lm(Metascore.Rating ~ Run.Time)
-summary(runtime_vs_rating_meta)
-plot(runtime_vs_rating_meta)
+```{r}
+model <- lm(worldwide_gross_2026 ~ 
+     plot_sentiment +
+     budget_usd_2026 +
+     IMDb.Rating,
+   data = movies_clean)
 
+summary(model)
 ```
 
