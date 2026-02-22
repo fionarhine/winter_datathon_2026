@@ -50,21 +50,25 @@ km <- function(string){
 
 movies_clean$Count.of.IMDb.Ratings <- movies_data$Count.of.IMDb.Ratings %>% 
   map_dbl(~km(.)) 
+
+movies_clean <- drop_na(movies_clean)
 ```
 
 ```{r genre cleanup}
 movies_wide_genres <- movies_data %>% 
-  select(Title, Genre) %>% 
-  separate_rows(Genre, sep = ",") %>%
-  mutate(present = TRUE) %>%
-  pivot_wider(
+  dplyr::select(Title, Genre) %>% 
+  tidyr::separate_rows(Genre, sep = ",") %>%
+  dplyr::mutate(present = TRUE) %>%
+  tidyr::pivot_wider(
     names_from = Genre,
     values_from = present,
     values_fill = FALSE,
     values_fn = any
   )
 
-movies_clean <- movies_clean %>% inner_join(movies_wide_genres, by = "Title")
+movies_clean <- movies_clean %>% 
+  dplyr::inner_join(movies_wide_genres, by = "Title")
+
 ```
 
 ```{r release date}
@@ -234,10 +238,70 @@ plot_words %>%
   count(word, sort = TRUE) %>%
   filter(!word %in% stop_words$word) %>%
   slice_max(n, n = 100)
+
+```
+```{r}
+library(ggplot2)
+library(tidytext)
+library(dplyr)
+
+plot_words <- movies_clean %>%
+  unnest_tokens(word, Plot)
+
+top_words <- plot_words %>%
+  count(word, sort = TRUE) %>%
+  filter(!word %in% stop_words$word) %>%
+  slice_max(n, n = 100)
+
+ggplot(top_words,
+       aes(x = reorder(word, n),
+           y = n)) +
+  geom_col() +
+  coord_flip() +
+  labs(
+    x = "Word",
+    y = "Frequency",
+    title = "Top 100 Most Frequent Words in Movie Plots"
+  ) +
+  theme_minimal()
+```
+```{r}
+library(tidytext)
+library(dplyr)
+library(ggplot2)
+
+plot_words <- movies_clean %>%
+  unnest_tokens(word, Plot)
+
+word_ratings <- plot_words %>%
+  filter(!word %in% stop_words$word) %>%
+  group_by(word) %>%
+  summarize(
+    avg_rating = mean(IMDb.Rating, na.rm = TRUE),
+    n = n()
+  ) %>%
+  filter(n >= 20) %>%  
+  slice_max(n, n = 30)   
+
+ggplot(word_ratings,
+       aes(x = reorder(word, avg_rating),
+           y = avg_rating)) +
+  geom_col() +
+  coord_flip() +
+  labs(
+    x = "Word",
+    y = "Average IMDb Rating",
+    title = "Average Rating of Movies Containing Each Word"
+  ) +
+  theme_minimal()
+```
+```{r}
+
 ```
 
+
 ```{r}
-model <- lm(worldwide_gross_2026 ~ 
+model <- lm(world_gross_2026 ~ 
      plot_sentiment +
      budget_usd_2026 +
      IMDb.Rating,
@@ -260,6 +324,7 @@ plot(runtime_vs_rating_rt)
 
 ```{r}
 #IMdb ratings
+attach(movies_clean)
 imdb_ratings_proportion <- IMDb.Rating * Count.of.IMDb.Ratings
 runtime_vs_rating_imdb <- lm(imdb_ratings_proportion ~ Run.Time)
 summary(runtime_vs_rating_imdb)
@@ -273,6 +338,68 @@ runtime_vs_rating_meta <- lm(Metascore.Rating ~ Run.Time)
 summary(runtime_vs_rating_meta)
 plot(runtime_vs_rating_meta)
 ```
+
+```{r}
+library(ggplot2)
+library(dplyr)
+
+ratings_long <- movies_clean %>%
+  dplyr::select(
+    Run.Time,
+    Rotten.Tomatoes.Rating,
+    Metascore.Rating
+  ) %>%
+  pivot_longer(
+    -Run.Time,
+    names_to = "Rating_Type",
+    values_to = "Rating"
+  )
+
+ggplot(ratings_long,
+       aes(x = Run.Time,
+           y = Rating,
+           color = Rating_Type)) +
+  geom_point(alpha = 0.6) +
+  ylim(0, 100)
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(
+    x = "Runtime (minutes)",
+    y = "Rating",
+    title = "Relationship Between Runtime and Movie Ratings"
+  ) +
+  theme_minimal()
+```
+```{r}
+
+ggplot(movies_clean, aes(Run.Time, imdb_ratings_proportion)) +
+  geom_point(alpha = 0.6) +
+  geom_smooth(method = "lm", se = FALSE) +
+  theme_minimal() +
+  labs(title = "Relationship between Runtime and IMdb Ratings")
+```
+```{r}
+q25 <- quantile(movies_clean$IMDb.Rating, 0.25, na.rm = TRUE)
+
+low_movies <- movies_clean %>%
+  filter(IMDb.Rating <= q25)
+
+summary(low_movies$Run.Time)
+
+q25 <- quantile(movies_clean$Rotten.Tomatoes.Rating, 0.25, na.rm = TRUE)
+
+low_movies <- movies_clean %>%
+  filter(Rotten.Tomatoes.Rating <= q25)
+
+summary(low_movies$Run.Time)
+
+q25 <- quantile(movies_clean$Metascore.Rating, 0.25, na.rm = TRUE)
+
+low_movies <- movies_clean %>%
+  filter(Metascore.Rating <= q25)
+
+summary(low_movies$Run.Time)
+```
+
 
 ```{r}
 #clean tagline
