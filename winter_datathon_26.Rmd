@@ -53,7 +53,8 @@ movies_clean$Count.of.IMDb.Ratings <- movies_data$Count.of.IMDb.Ratings %>%
 ```
 
 ```{r genre cleanup}
-movies_wide_genres <- movies_data %>% select(Title, Genre) %>% 
+movies_wide_genres <- movies_data %>% 
+  select(Title, Genre) %>% 
   separate_rows(Genre, sep = ",") %>%
   mutate(present = TRUE) %>%
   pivot_wider(
@@ -259,8 +260,7 @@ plot(runtime_vs_rating_rt)
 movies_clean2 <- movies_clean %>%
   filter(Rotten.Tomatoes.Rating > 0)
 
-runtime_vs_rating_rt <- lm(1 / Rotten.Tomatoes.Rating ~ Run.Time,
-                           data = movies_clean2)
+runtime_vs_rating_rt <- lm(log(Rotten.Tomatoes.Rating) ~ Run.Time)
 
 summary(runtime_vs_rating_rt)
 plot(runtime_vs_rating_rt)
