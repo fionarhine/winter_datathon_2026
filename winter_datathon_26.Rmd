@@ -284,3 +284,118 @@ summary(runtime_vs_rating_meta)
 plot(runtime_vs_rating_meta)
 ```
 
+```{r}
+#clean tagline
+library(dplyr)
+library(stringr)
+library(tidytext)
+library(tidyr)
+
+na_vals <- c("NA", "N/A", "NULL", "na", "n/a", "null")
+
+movies_clean <- movies_clean %>%
+  mutate(
+    Tagline = str_squish(Tagline),
+    Tagline = str_replace_all(Tagline, "&apos;", "'"),
+    Tagline = ifelse(Tagline %in% na_vals, NA_character_, Tagline)
+  )
+
+#for text mining: so all lower case to make it easy 
+tag_base <- movies_clean %>%
+  select(Title, Tagline) %>%
+  filter(!is.na(Tagline), Tagline != "")
+```
+
+```{r}
+#check for common tagline words 
+tag_words <- tag_base %>%
+  mutate(Tagline_lower = str_to_lower(Tagline)) %>%
+  unnest_tokens(word, Tagline_lower) %>%
+  anti_join(stop_words, by = "word")
+
+tag_words %>% # one word
+  count(word, sort = TRUE) %>%
+  slice_max(n, n = 20)
+
+tag_bigrams <- tag_base %>% #two words with word fillers "the, of" gone
+  mutate(Tagline_lower = str_to_lower(Tagline)) %>%
+  unnest_tokens(bigram, Tagline_lower, token = "ngrams", n = 2) %>%
+  separate(bigram, into = c("word1", "word2"), sep = " ") %>%
+  filter(
+    !word1 %in% stop_words$word,
+    !word2 %in% stop_words$word
+  ) %>%
+  unite(bigram, word1, word2, sep = " ")
+
+tag_bigrams %>%
+  count(bigram, sort = TRUE) %>%
+  slice_max(n, n = 20)
+
+tag_trigrams <- tag_base %>% #three words with word fillers gone
+  mutate(Tagline_lower = str_to_lower(Tagline)) %>%
+  unnest_tokens(trigram, Tagline_lower, token = "ngrams", n = 3) %>%
+  separate(trigram, into = c("word1", "word2", "word3"), sep = " ") %>%
+  filter(
+    !word1 %in% stop_words$word,
+    !word2 %in% stop_words$word,
+    !word3 %in% stop_words$word
+  ) %>%
+  unite(trigram, word1, word2, word3, sep = " ")
+
+tag_trigrams %>%
+  count(trigram, sort = TRUE) %>%
+  slice_max(n, n = 20)
+
+```
+
+```{r}
+#check tagline styling features:
+
+#check word count/length
+tagline_word_count <- str_count(movies_clean$Tagline, "\\S+")
+tagline_char_length <- nchar(movies_clean$Tagline)
+
+exclaim_count <- str_count(movies_clean$Tagline, "!")
+question_count <- str_count(movies_clean$Tagline, "\\?")
+comma_count <- str_count(movies_clean$Tagline, ",")
+dot_count <- str_count(movies_clean$Tagline, "\\.")
+
+has_exclaim <- as.numeric(exclaim_count > 0)
+has_question <- as.numeric(question_count > 0)
+
+# check if capitalization matter
+upper_chars <- str_count(movies_clean$Tagline, "[A-Z]")
+letters_only <- str_count(movies_clean$Tagline, "[A-Za-z]")
+upper_ratio <- ifelse(letters_only == 0, 0, upper_chars / letters_only)
+all_caps <- as.numeric(letters_only > 0 & upper_ratio > 0.9)
+
+# 2) check word repetition matter or no
+tag_rep <- movies_clean %>%
+  select(Title, Tagline) %>%
+  filter(!is.na(Tagline), Tagline != "") %>%
+  mutate(Tagline_lower = str_to_lower(Tagline)) %>%
+  unnest_tokens(word, Tagline_lower) %>%
+  group_by(Title) %>%
+  summarise(repetition_ratio = 1 - (n_distinct(word) / n()), .groups = "drop")
+
+repetition_ratio <- tag_rep$repetition_ratio[match(movies_clean$Title, tag_rep$Title)]
+repetition_ratio[is.na(repetition_ratio)] <- 0
+
+# 3) model: do tagline style choices predict revenue?
+m_tagline <- lm(
+  worldwide_gross_2026 ~
+    tagline_word_count +
+    has_exclaim +
+    has_question +
+    upper_ratio +
+    all_caps +
+    repetition_ratio +
+    budget_usd_2026 +
+    IMDb.Rating,
+  data = movies_clean
+)
+
+summary(m_tagline)
+```
+Each additional word in the tagline is associated with ~ $3.2 million more revenue, holding other variables constant. Statistically significant (p < 0.05). Longer taglines slightly outperform shorter ones. The rest dont matter.
+
