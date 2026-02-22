@@ -75,7 +75,7 @@ movies_clean <- movies_clean %>%
 library(dplyr)
 library(tidyr)
 
-movies_data |> 
+movies_clean <- movies_data |> 
   separate(
     Release.Date,
     into = c("date", "country"),
