@@ -265,6 +265,7 @@ ggplot(top_words,
   ) +
   theme_minimal()
 ```
+
 ```{r}
 library(tidytext)
 library(dplyr)
@@ -497,7 +498,6 @@ tag_trigrams %>%
 
 ```{r}
 #check tagline styling features:
-
 #check word count/length
 tagline_word_count <- str_count(movies_clean$Tagline, "\\S+")
 tagline_char_length <- nchar(movies_clean$Tagline)
@@ -566,4 +566,31 @@ summary(m_tagline_log)
 ```
 Earlier "longer taglines increase revenue" effect dont matter after log-transform. Means the previous significance was likely driven by extreme blockbuster scale effects. Movies with exclamation marks in their tagline earn roughly 25–30% less revenue, controlling for budget and rating. Not strong enough for p < 0.05, but kinda. Budget Matters. Each 1-point increase in IMDb rating leads to approx. 32% increase in revenue.
 
+
+```{r}
+#clean genre column
+library(dplyr)
+library(tidyr)
+
+genre_long <- movies_clean %>%
+  select(Title, Genre, worldwide_gross_2026) %>%
+  filter(!is.na(Genre)) %>%
+  separate_rows(Genre, sep = ",") %>%
+  mutate(Genre = trimws(Genre))
+
+#summary of highest generating revenue (with log revenue to prevent blockbuster distortion)
+genre_summary_log <- genre_long %>%
+  mutate(log_rev = log(worldwide_gross_2026)) %>%
+  group_by(Genre) %>%
+  summarise(
+    avg_log_revenue = mean(log_rev, na.rm = TRUE),
+    n_movies = n()
+  ) %>%
+  arrange(desc(avg_log_revenue))
+
+genre_summary_log
+```
+```{r}
+anova(lm(log(worldwide_gross_2026) ~ Genre, data = genre_long))
+```
 
