@@ -157,6 +157,11 @@ movies_clean[["Domestic.Weekend.Gross"]] <- as.numeric(gsub("[\\$,]", "", movies
 movies_clean[["Worldwide.Gross"]] <- as.numeric(gsub("[\\$,]", "", movies_clean[["Worldwide.Gross"]]))
 ```
 
+```{r ratings cleanup}
+movies_clean[["Rotten.Tomatoes.Rating"]] <- as.numeric(gsub("%", "", movies_clean[["Rotten.Tomatoes.Rating"]]))
+```
+
+
 ```{r gross account for inflation}
 library(dplyr)
 library(readr)
@@ -261,3 +266,4 @@ summary(runtime_vs_rating_meta)
 plot(runtime_vs_rating_meta)
 
 ```
+
