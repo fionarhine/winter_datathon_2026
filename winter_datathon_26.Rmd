@@ -244,6 +244,7 @@ model <- lm(worldwide_gross_2026 ~
    data = movies_clean)
 
 summary(model)
+plot(model)
 ```
 
 ```{r}
@@ -254,17 +255,6 @@ attach(movies_clean)
 runtime_vs_rating_rt <- lm(Rotten.Tomatoes.Rating ~ Run.Time)
 summary(runtime_vs_rating_rt)
 plot(runtime_vs_rating_rt)
-
-#problem with linearity, normality a little, and constant variance 
-#try inverse response plot 
-movies_clean2 <- movies_clean %>%
-  filter(Rotten.Tomatoes.Rating > 0)
-
-runtime_vs_rating_rt <- lm(log(Rotten.Tomatoes.Rating) ~ Run.Time)
-
-summary(runtime_vs_rating_rt)
-plot(runtime_vs_rating_rt)
-
 
 ```
 
