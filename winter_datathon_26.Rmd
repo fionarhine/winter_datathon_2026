@@ -240,3 +240,24 @@ model <- lm(worldwide_gross_2026 ~
 summary(model)
 ```
 
+```{r}
+#runtime effect on ratings 
+
+#rotten tomato ratings
+attach(movies_clean)
+runtime_vs_rating_rt <- lm(Rotten.Tomatoes.Rating ~ Run.Time)
+summary(runtime_vs_rating_rt)
+plot(runtime_vs_rating_rt)
+
+#IMdb ratings
+imdb_ratings_proportion <- IMDb.Rating * Count.of.IMDb.Ratings
+runtime_vs_rating_imdb <- lm(imdb_ratings_proportion ~ Run.Time)
+summary(runtime_vs_rating_imdb)
+plot(runtime_vs_rating_imdb)
+
+#metascore ratings
+runtime_vs_rating_meta <- lm(Metascore.Rating ~ Run.Time)
+summary(runtime_vs_rating_meta)
+plot(runtime_vs_rating_meta)
+
+```
