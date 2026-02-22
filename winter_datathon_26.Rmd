@@ -544,5 +544,26 @@ m_tagline <- lm(
 
 summary(m_tagline)
 ```
-Each additional word in the tagline is associated with ~ $3.2 million more revenue, holding other variables constant. Statistically significant (p < 0.05). Longer taglines slightly outperform shorter ones. The rest dont matter.
+Each additional word in the tagline is associated with ~ $3.2 million more revenue, holding other variables constant. Statistically significant (p < 0.05). Longer taglines slightly outperform shorter ones. The rest don't matter.
+
+```{r}
+log_revenue <- log(movies_clean$worldwide_gross_2026 + 1) #revenue skewed so to make it fair 
+
+m_tagline_log <- lm( 
+  log_revenue ~
+    tagline_word_count +
+    has_exclaim +
+    has_question +
+    upper_ratio +
+    all_caps +
+    repetition_ratio +
+    budget_usd_2026 +
+    IMDb.Rating,
+  data = movies_clean
+)
+
+summary(m_tagline_log)
+```
+Earlier "longer taglines increase revenue" effect dont matter after log-transform. Means the previous significance was likely driven by extreme blockbuster scale effects. Movies with exclamation marks in their tagline earn roughly 25–30% less revenue, controlling for budget and rating. Not strong enough for p < 0.05, but kinda. Budget Matters. Each 1-point increase in IMDb rating leads to approx. 32% increase in revenue.
+
 
